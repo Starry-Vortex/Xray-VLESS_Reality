@@ -4,7 +4,6 @@
 sleep 1
 
 if [ "$(tput cols)" -lt 100 ]; then
-    if [ "$(tput cols)" -lt 80 ]; then
         echo "VLESS-Reality Installer"
 else
     cat << 'EOF'
