@@ -30,7 +30,21 @@ Trojan特征也很明显，容易被识别，暂时推荐使用Reality自建翻�
 [Xray REALITY 官方github地址](https://github.com/XTLS/REALITY)
 
 
-## BBR
+## 1.根据系统类型更新软件包
+### Debian
+````````
+apt update -qq && apt upgrade -y -qq && apt install -y curl
+````````
+### Alpine
+````````
+apk update --quiet && apk upgrade --quiet && apk add curl
+````````
+## 2.一键安装脚本
+````````
+bash <(curl -Ls https://raw.githubusercontent.com/eooce/sing-box/main/sing-box.sh)
+````````
+根据交互指令，选择端口和域名，进行节点配置，UUID随机生成
+## 3.BBR（可选）
 
 买的线路不好的话可以安装BBR加速。
 
@@ -39,13 +53,6 @@ wget -no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh 
 ````````
 然后重启
 
-## 一键脚本
-
-mack-a大佬的八合一的一键脚本
-
-````````
-wget -p/root -n -n-n-no-check-certificate“ https://raw.githubusercontent.com/mack-a/v2ray-agent/master/master/master/master/master/master/master/Install.shL.shL.shl.show时间&& chmod 700/root/root/loot/install.shsh
-````````
 
 选择[5.REALITY管理] -- 端口输入443--输入域名最低标准为：国外网站，支持 TLSv1.3 、H2--后面回车即可。
 
