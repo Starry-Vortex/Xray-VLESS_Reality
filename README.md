@@ -1,6 +1,6 @@
-# Reality一键安装脚本和各个系统客户端收集推荐
+# VPS一键脚本 搭建xray-vless-reality协议
 
-tag:Reality,一键安装脚本,自建翻墙
+### 说明：基于X-Ray内核，搭建vless-Reality协议，一键安装脚本，自建翻墙节点
 
 Trojan特征也很明显，容易被识别，暂时推荐使用Reality自建翻墙代理。下面是一键安装脚本。后面有各个系统的客户端推荐。
 
@@ -11,7 +11,7 @@ Trojan特征也很明显，容易被识别，暂时推荐使用Reality自建翻�
 <a href="https://jichangpingce.com/ssr-v2ray专线机场推荐.html" target="_blank">20家自用便宜稳定高速国外ssr-v2ray-trojan专线机场推荐</a>
 
 
-<!--more--> 
+<！ - 更多 - >
 
 ## Reality优点
 
@@ -34,28 +34,28 @@ Trojan特征也很明显，容易被识别，暂时推荐使用Reality自建翻�
 
 买的线路不好的话可以安装BBR加速。
 
-```
-wget --no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh && chmod +x bbr.sh && ./bbr.sh
-```
+````````
+wget -no-check-certificate https://github.com/teddysun/across/raw/master/bbr.sh && chmod +x bbr.sh && ./bbr.sh
+````````
 然后重启
 
 ## 一键脚本
 
 mack-a大佬的八合一的一键脚本
 
-```
-wget -P /root -N --no-check-certificate "https://raw.githubusercontent.com/mack-a/v2ray-agent/master/install.sh" && chmod 700 /root/install.sh && /root/install.sh
-```
+````````
+wget -p/root -n -n-n-no-check-certificate“ https://raw.githubusercontent.com/mack-a/v2ray-agent/master/master/master/master/master/master/master/Install.shL.shL.shl.show时间&& chmod 700/root/root/loot/install.shsh
+````````
 
 选择[5.REALITY管理] -- 端口输入443--输入域名最低标准为：国外网站，支持 TLSv1.3 、H2--后面回车即可。
 
-<details>
- <summary>国外网站域名推荐</summary>
+<详细信息>
+<summary>国外网站域名推荐</summary>
 
 
 gateway.icloud.com
 itunes.apple.com
-download-installer.cdn.mozilla.net
+下载installer.cdn.mozilla.net
 airbnb【这个不同的区有不同的域名建议自己搜索】
 addons.mozilla.org
 www.microsoft.com
@@ -63,8 +63,8 @@ www.lovelive-anime.jp
 www.speedtest.net
 www.speedtest.org
 
-# CDN
-Apple:
+＃cdn
+苹果：
 swdist.apple.com
 swcdn.apple.com
 updates.cdn-apple.com
