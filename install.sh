@@ -2,7 +2,26 @@
 
 # 等待1秒, 避免curl下载脚本的打印与脚本本身的显示冲突, 吃掉了提示用户按回车继续的信息
 sleep 1
+clear
 
+# 定义颜色
+re="\033[0m"
+red="\033[1;91m"
+green="\e[1;32m"
+yellow="\e[1;33m"
+purple="\e[1;35m"
+skybule="\e[1;36m"
+red() { echo -e "\e[1;91m$1\033[0m"; }
+green() { echo -e "\e[1;32m$1\033[0m"; }
+yellow() { echo -e "\e[1;33m$1\033[0m"; }
+purple() { echo -e "\e[1;35m$1\033[0m"; }
+skyblue() { echo -e "\e[1;36m$1\033[0m"; }
+reading() { read -p "$(red "$1")" "$2"; }
+
+# 检查是否为root下运行
+[[ $EUID -ne 0 ]] && red "请在root用户下运行脚本" && exit 1
+
+# 脚本欢迎界面艺术字
 if ! command -v tput >/dev/null 2>&1; then
     echo "VLESS-Reality Installer"
 elif [ "$(tput cols)" -lt 62 ]; then
@@ -53,3 +72,20 @@ else
                                                                                                                  
 EOF
 fi
+
+# 创建快捷指令
+create_shortcut() {
+  cat > "$work_dir/r.sh" << EOF
+#!/usr/bin/env bash
+
+bash <(curl -Ls https://raw.githubusercontent.com/eooce/sing-box/main/sing-box.sh) \$1
+EOF
+  chmod +x "$work_dir/sb.sh"
+  ln -sf "$work_dir/sb.sh" /usr/bin/sb
+  if [ -s /usr/bin/sb ]; then
+    green "\n快捷指令 r 创建成功\n"
+  else
+    red "\n快捷指令创建失败\n"
+  fi
+}
+
