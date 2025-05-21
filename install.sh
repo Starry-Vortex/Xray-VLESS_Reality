@@ -79,15 +79,6 @@ EOF
 fi
 }
 
-clear
-echo "============Reality 管理脚本============"
-echo "1. 安装 Reality"
-echo "2. 卸载 Reality"
-echo "3. 修改 Reality 端口"
-echo "4. 查看 Reality 链接"
-echo "0. 退出"
-echo "================================"
-
 # 创建快捷指令
 create_shortcut() {
   cat > "$work_dir/r.sh" << EOF
@@ -104,3 +95,66 @@ EOF
   fi
 }
 
+# 捕获 Ctrl+C 信号
+trap 'red "已取消操作"; exit' INT
+
+# 主循环
+while true; do
+   clear
+   purple  "============Reality 管理脚本============"
+   purple "   Xray 状态: ${check_singbox_status}
+   purple "Reality 状态: ${check_argo_status}"
+   purple "  Nginx 状态: ${check_nginx_status}\n"
+   echo "1. 安装 Reality"
+   green "2. 启动Xray服务"
+   green "3. 停止Xray服务"
+   green "4. 重启Xray服务\n"
+   echo "5. 查看节点信息"
+   skybule "6. 修改端口"
+   skyblue "7. 修改伪装域名"
+   skybule "8. 修改UUID"
+   echo  "===================================="
+   echo "0. 退出脚本"
+   echo "===================================="
+   reading "请输入选择(0-8): " choice
+   echo ""
+   case "${choice}" in
+        1)  
+            if [ ${check_singbox} -eq 0 ]; then
+                yellow "sing-box 已经安装！"
+            else
+                fix_nginx
+                manage_packages install nginx jq tar openssl iptables coreutils
+                [ -n "$(curl -s --max-time 2 ipv6.ip.sb)" ] && manage_packages install ip6tables
+                install_singbox
+
+                if [ -x "$(command -v systemctl)" ]; then
+                    main_systemd_services
+                elif [ -x "$(command -v rc-update)" ]; then
+                    alpine_openrc_services
+                    change_hosts
+                    rc-service sing-box restart
+                    rc-service argo restart
+                else
+                    echo "Unsupported init system"
+                    exit 1 
+                fi
+
+                sleep 5
+                get_info
+                add_nginx_conf
+                create_shortcut
+            fi
+           ;;
+        2) uninstall_singbox ;;
+        3) manage_singbox ;;
+        4) manage_argo ;;
+        5) check_nodes ;;
+        6) change_config ;;
+        7) disable_open_sub ;;
+        8)          
+        0) exit 0 ;;
+        *) red "无效的选项，请输入 0 到 8" ;; 
+   esac
+   read -n 1 -s -r -p $'\033[1;91m按任意键继续...\033[0m'
+done
