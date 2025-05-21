@@ -100,6 +100,14 @@ trap 'red "已取消操作"; exit' INT
 
 # 主循环
 while true; do
+   check_singbox &>/dev/null; check_singbox=$?
+   check_nginx &>/dev/null; check_nginx=$?
+   check_argo &>/dev/null; check_argo=$?
+   check_singbox_status=$(check_singbox) > /dev/null 2>&1
+   check_nginx_status=$(check_nginx) > /dev/null 2>&1
+   check_argo_status=$(check_argo) > /dev/null 2>&1
+   clear
+   echo ""
    clear
    purple  "============Reality 管理脚本============"
    purple "   Xray 状态: ${check_singbox_status}
