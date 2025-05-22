@@ -77,6 +77,12 @@ else
 <=========================================================================================================================>
 EOF
 fi
+yellow "The files installed by the script conform to the Filesystem Hierarchy Standard:"
+echo "https://wiki.linuxfoundation.org/lsb/fhs"
+yellow "The URL of the script project is:"
+echo "https://github.com/Starry-Vortex/Xray-VLESS_Reality/tree/patch-1"
+yellow "If the script executes incorrectly, go to:"
+echo ""
 }
 
 # 创建快捷指令
@@ -109,7 +115,7 @@ while true; do
    clear
    echo ""
    clear
-   purple  "============Reality 管理脚本============"
+   purple "============Reality 管理脚本============"
    purple "   Xray 状态: ${check_singbox_status}
    purple "Reality 状态: ${check_argo_status}"
    purple "  Nginx 状态: ${check_nginx_status}\n"
@@ -121,7 +127,7 @@ while true; do
    skybule "6. 修改端口"
    skyblue "7. 修改伪装域名"
    skybule "8. 修改UUID"
-   echo  "===================================="
+   echo "===================================="
    echo "0. 退出脚本"
    echo "===================================="
    reading "请输入选择(0-8): " choice
