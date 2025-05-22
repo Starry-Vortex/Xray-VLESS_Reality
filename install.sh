@@ -17,6 +17,29 @@ purple() { echo -e "\e[1;35m$1\033[0m"; }
 skyblue() { echo -e "\e[1;36m$1\033[0m"; }
 reading() { read -p "$(red "$1")" "$2"; }
 
+# 定义常量
+DAT_PATH=${DAT_PATH:-/usr/local/share/xray}
+JSON_PATH=${JSON_PATH:-/usr/local/etc/xray}
+config_dir="${work_dir}/config.json"
+client_dir="${work_dir}/url.txt"
+export vless_port=${PORT:-$(shuf -i 1000-65000 -n 1)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # 检查是否为root下运行
 [[ $EUID -ne 0 ]] && red "请在root用户下运行脚本" && exit 1
 
