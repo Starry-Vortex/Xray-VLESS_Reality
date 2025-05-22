@@ -308,9 +308,8 @@ while true; do
    echo ""
    clear
    purple "============Reality 管理脚本============"
-   purple "   Xray 状态: ${check_xray_status}
-   purple "Reality 状态: ${check_argo_status}"
-   purple "  Nginx 状态: ${check_nginx_status}\n"
+   purple " Xray 状态: ${check_xray_status}
+   purple "Nginx 状态: ${check_nginx_status}\n"
    echo "1. 安装 Reality"
    green "2. 启动Xray服务"
    green "3. 停止Xray服务"
@@ -352,13 +351,71 @@ while true; do
                 create_shortcut
             fi
            ;;
-        2) uninstall_singbox ;;
-        3) manage_singbox ;;
-        4) manage_argo ;;
+        2) start_xray ;;
+        3) stop_xray ;;
+        4) restart_xray ;;
         5) check_nodes ;;
-        6) change_config ;;
-        7) disable_open_sub ;;
-        8)          
+        6)
+            reading "\n请输入vless-reality端口 (回车跳过将使用随机端口): " new_port
+            [ -z "$new_port" ] && new_port=$(shuf -i 2000-65000 -n 1)
+            sed -i '/"type": "vless"/,/listen_port/ s/"listen_port": [0-9]\+/"listen_port": '"$new_port"'/' $config_dir
+            restart_singbox
+            sed -i 's/\(vless:\/\/[^@]*@[^:]*:\)[0-9]\{1,\}/\1'"$new_port"'/' $client_dir
+            base64 -w0 /etc/sing-box/url.txt > /etc/sing-box/sub.txt
+            while IFS= read -r line; do yellow "$line"; done < ${work_dir}/url.txt
+            green "\nvless-reality端口已修改成：${purple}$new_port${re} ${green}请更新订阅或手动更改vless-reality端口${re}\n"
+            ;;
+        7)
+            clear
+            green "\n1. www.joom.com\n\n2. www.stengg.com\n\n3. www.wedgehr.com\n\n4. www.cerebrium.ai\n\n5. www.nazhumi.com\n"
+            reading "\n请输入新的Reality伪装域名(可自定义输入,回车留空将使用默认1): " new_sni
+                if [ -z "$new_sni" ]; then    
+                    new_sni="www.joom.com"
+                elif [[ "$new_sni" == "1" ]]; then
+                    new_sni="www.joom.com"
+                elif [[ "$new_sni" == "2" ]]; then
+                    new_sni="www.stengg.com"
+                elif [[ "$new_sni" == "3" ]]; then
+                    new_sni="www.wedgehr.com"
+                elif [[ "$new_sni" == "4" ]]; then
+                    new_sni="www.cerebrium.ai"
+	        elif [[ "$new_sni" == "5" ]]; then
+                    new_sni="www.nazhumi.com"
+                else
+                    new_sni="$new_sni"
+                fi
+                jq --arg new_sni "$new_sni" '
+                (.inbounds[] | select(.type == "vless") | .tls.server_name) = $new_sni |
+                (.inbounds[] | select(.type == "vless") | .tls.reality.handshake.server) = $new_sni
+                ' "$config_dir" > "$config_file.tmp" && mv "$config_file.tmp" "$config_dir"
+                restart_singbox
+                sed -i "s/\(vless:\/\/[^\?]*\?\([^\&]*\&\)*sni=\)[^&]*/\1$new_sni/" $client_dir
+                base64 -w0 $client_dir > /etc/sing-box/sub.txt
+                while IFS= read -r line; do yellow "$line"; done < ${work_dir}/url.txt
+                echo ""
+                green "\nReality sni已修改为：${purple}${new_sni}${re} ${green}请更新订阅或手动更改reality节点的sni域名${re}\n"
+            ;;
+        8)
+            reading "\n请输入新的UUID: " new_uuid
+            [ -z "$new_uuid" ] && new_uuid=$(cat /proc/sys/kernel/random/uuid)
+            sed -i -E '
+                s/"uuid": "([a-f0-9-]+)"/"uuid": "'"$new_uuid"'"/g;
+                s/"uuid": "([a-f0-9-]+)"$/\"uuid\": \"'$new_uuid'\"/g;
+                s/"password": "([a-f0-9-]+)"/"password": "'"$new_uuid"'"/g
+            ' $config_dir
+
+            restart_singbox
+            sed -i -E 's/(vless:\/\/|hysteria2:\/\/)[^@]*(@.*)/\1'"$new_uuid"'\2/' $client_dir
+            sed -i "s/tuic:\/\/[0-9a-f\-]\{36\}/tuic:\/\/$new_uuid/" /etc/sing-box/url.txt
+            isp=$(curl -s https://speed.cloudflare.com/meta | awk -F\" '{print $26"-"$18}' | sed -e 's/ /_/g')
+            argodomain=$(grep -oE 'https://[[:alnum:]+\.-]+\.trycloudflare\.com' "${work_dir}/argo.log" | sed 's@https://@@')
+            VMESS="{ \"v\": \"2\", \"ps\": \"${isp}\", \"add\": \"www.visa.com.tw\", \"port\": \"443\", \"id\": \"${new_uuid}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argodomain}\", \"path\": \"/vmess-argo?ed=2048\", \"tls\": \"tls\", \"sni\": \"${argodomain}\", \"alpn\": \"\", \"fp\": \"\", \"allowlnsecure\": \"flase\"}"
+            encoded_vmess=$(echo "$VMESS" | base64 -w0)
+            sed -i -E '/vmess:\/\//{s@vmess://.*@vmess://'"$encoded_vmess"'@}' $client_dir
+            base64 -w0 $client_dir > /etc/sing-box/sub.txt
+            while IFS= read -r line; do yellow "$line"; done < ${work_dir}/url.txt
+            green "\nUUID已修改为：${purple}${new_uuid}${re} ${green}请更新订阅或手动更改所有节点的UUID${re}\n"
+            ;;
         0) exit 0 ;;
         *) red "无效的选项，请输入 0 到 8" ;; 
    esac
