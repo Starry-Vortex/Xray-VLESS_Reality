@@ -85,6 +85,183 @@ yellow "If the script executes incorrectly, go to:"
 echo ""
 }
 
+# 检查 Xray 是否已安装
+check_xray() {
+if [ -f "${work_dir}/${server_name}" ]; then
+    if [ -f /etc/alpine-release ]; then
+        rc-service sing-box status | grep -q "started" && green "running" && return 0 || yellow "not running" && return 1
+    else 
+        [ "$(systemctl is-active sing-box)" = "active" ] && green "running" && return 0 || yellow "not running" && return 1
+    fi
+else
+    red "not installed"
+    return 2
+fi
+}
+
+# 检查 nginx 是否已安装
+check_nginx() {
+if command -v nginx &>/dev/null; then
+    if [ -f /etc/alpine-release ]; then
+        rc-service nginx status | grep -q "stoped" && yellow "not running" && return 1 || green "running" && return 0
+    else 
+        [ "$(systemctl is-active nginx)" = "active" ] && green "running" && return 0 || yellow "not running" && return 1
+    fi
+else
+    red "not installed"
+    return 2
+fi
+}
+
+# 获取ip
+get_realip() {
+  ip=$(curl -s --max-time 2 ipv4.ip.sb)
+  if [ -z "$ip" ]; then
+      ipv6=$(curl -s --max-time 1 ipv6.ip.sb)
+      echo "[$ipv6]"
+  else
+      if echo "$(curl -s http://ipinfo.io/org)" | grep -qE 'Cloudflare|UnReal|AEZA|Andrei'; then
+          ipv6=$(curl -s --max-time 1 ipv6.ip.sb)
+          echo "[$ipv6]"
+      else
+          echo "$ip"
+      fi
+  fi
+}
+
+# 下载并安装 Xray
+install_xray() {
+
+}
+
+# Debian系统 守护进程
+
+# Alpine系统 守护进程
+
+# 启动 sing-box
+start_singbox() {
+if [ ${check_singbox} -eq 1 ]; then
+    yellow "正在启动 ${server_name} 服务\n"
+    if [ -f /etc/alpine-release ]; then
+        rc-service sing-box start
+    else
+        systemctl daemon-reload
+        systemctl start "${server_name}"
+    fi
+   if [ $? -eq 0 ]; then
+       green "${server_name} 服务已成功启动\n"
+   else
+       red "${server_name} 服务启动失败\n"
+   fi
+elif [ ${check_singbox} -eq 0 ]; then
+    yellow "sing-box 正在运行\n"
+    sleep 1
+    menu
+else
+    yellow "sing-box 尚未安装!\n"
+    sleep 1
+    menu
+fi
+}
+
+# 停止 sing-box
+stop_singbox() {
+if [ ${check_singbox} -eq 0 ]; then
+   yellow "正在停止 ${server_name} 服务\n"
+    if [ -f /etc/alpine-release ]; then
+        rc-service sing-box stop
+    else
+        systemctl stop "${server_name}"
+    fi
+   if [ $? -eq 0 ]; then
+       green "${server_name} 服务已成功停止\n"
+   else
+       red "${server_name} 服务停止失败\n"
+   fi
+
+elif [ ${check_singbox} -eq 1 ]; then
+    yellow "sing-box 未运行\n"
+    sleep 1
+    menu
+else
+    yellow "sing-box 尚未安装！\n"
+    sleep 1
+    menu
+fi
+}
+
+# 重启 sing-box
+restart_singbox() {
+if [ ${check_singbox} -eq 0 ]; then
+   yellow "正在重启 ${server_name} 服务\n"
+    if [ -f /etc/alpine-release ]; then
+        rc-service ${server_name} restart
+    else
+        systemctl daemon-reload
+        systemctl restart "${server_name}"
+    fi
+    if [ $? -eq 0 ]; then
+        green "${server_name} 服务已成功重启\n"
+    else
+        red "${server_name} 服务重启失败\n"
+    fi
+elif [ ${check_singbox} -eq 1 ]; then
+    yellow "sing-box 未运行\n"
+    sleep 1
+    menu
+else
+    yellow "sing-box 尚未安装！\n"
+    sleep 1
+    menu
+fi
+}
+
+# 启动 nginx
+start_nginx() {
+if command -v nginx &>/dev/null; then
+    yellow "正在启动 nginx 服务\n"
+    if [ -f /etc/alpine-release ]; then
+        rc-service nginx start
+    else
+        systemctl daemon-reload
+        systemctl start nginx
+    fi
+    if [ $? -eq 0 ]; then
+        green "Nginx 服务已成功启动\n"
+    else
+        red "Nginx 启动失败\n"
+    fi
+else
+    yellow "Nginx 尚未安装！\n"
+    sleep 1
+    menu
+fi
+}
+
+# 重启 nginx
+restart_nginx() {
+if command -v nginx &>/dev/null; then
+    yellow "正在重启 nginx 服务\n"
+    if [ -f /etc/alpine-release ]; then
+     	pkill -f '[n]ginx'
+        touch /run/nginx.pid
+        nginx -s reload
+        rc-service nginx restart
+    else
+        systemctl restart nginx
+    fi
+    if [ $? -eq 0 ]; then
+        green "Nginx 服务已成功重启\n"
+    else
+        red "Nginx 重启失败\n"
+    fi
+else
+    yellow "Nginx 尚未安装！\n"
+    sleep 1
+    menu
+fi
+}
+
 # 创建快捷指令
 create_shortcut() {
   cat > "$work_dir/r.sh" << EOF
@@ -101,22 +278,37 @@ EOF
   fi
 }
 
+# 查看节点信息
+check_nodes() {
+if [ ${check_singbox} -eq 0 ]; then
+    while IFS= read -r line; do purple "${purple}$line"; done < ${work_dir}/url.txt
+    server_ip=$(get_realip)
+    lujing=$(sed -n 's|.*location /||p' /etc/nginx/nginx.conf | awk '{print $1}')
+    sub_port=$(sed -n 's/^\s*listen \([0-9]\+\);/\1/p' /etc/nginx/nginx.conf)
+    green "\n节点订阅链接：http://${server_ip}:${sub_port}/${lujing}\n"
+else 
+    yellow "sing-box 尚未安装或未运行,请先安装或启动sing-box"
+    sleep 1
+    menu
+fi
+}
+
 # 捕获 Ctrl+C 信号
 trap 'red "已取消操作"; exit' INT
 
 # 主循环
 while true; do
-   check_singbox &>/dev/null; check_singbox=$?
+   check_xray &>/dev/null; check_xray=$?
    check_nginx &>/dev/null; check_nginx=$?
    check_argo &>/dev/null; check_argo=$?
-   check_singbox_status=$(check_singbox) > /dev/null 2>&1
+   check_xray_status=$(check_xray) > /dev/null 2>&1
    check_nginx_status=$(check_nginx) > /dev/null 2>&1
    check_argo_status=$(check_argo) > /dev/null 2>&1
    clear
    echo ""
    clear
    purple "============Reality 管理脚本============"
-   purple "   Xray 状态: ${check_singbox_status}
+   purple "   Xray 状态: ${check_xray_status}
    purple "Reality 状态: ${check_argo_status}"
    purple "  Nginx 状态: ${check_nginx_status}\n"
    echo "1. 安装 Reality"
@@ -134,13 +326,13 @@ while true; do
    echo ""
    case "${choice}" in
         1)  
-            if [ ${check_singbox} -eq 0 ]; then
-                yellow "sing-box 已经安装！"
+            if [ ${check_xray} -eq 0 ]; then
+                yellow "Xray 已经安装！"
             else
                 fix_nginx
                 manage_packages install nginx jq tar openssl iptables coreutils
                 [ -n "$(curl -s --max-time 2 ipv6.ip.sb)" ] && manage_packages install ip6tables
-                install_singbox
+                install_xray
 
                 if [ -x "$(command -v systemctl)" ]; then
                     main_systemd_services
