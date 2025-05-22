@@ -87,7 +87,7 @@ echo ""
 
 # 检查 Xray 是否已安装
 check_xray() {
-if [ -f "${work_dir}/${server_name}" ]; then
+if [ -f "${work_dir}/xray" ]; then
     if [ -f /etc/alpine-release ]; then
         rc-service sing-box status | grep -q "started" && green "running" && return 0 || yellow "not running" && return 1
     else 
@@ -141,17 +141,17 @@ install_xray() {
 # 启动 sing-box
 start_singbox() {
 if [ ${check_singbox} -eq 1 ]; then
-    yellow "正在启动 ${server_name} 服务\n"
+    yellow "正在启动 xray 服务\n"
     if [ -f /etc/alpine-release ]; then
         rc-service sing-box start
     else
         systemctl daemon-reload
-        systemctl start "${server_name}"
+        systemctl start "xray"
     fi
    if [ $? -eq 0 ]; then
-       green "${server_name} 服务已成功启动\n"
+       green "xray 服务已成功启动\n"
    else
-       red "${server_name} 服务启动失败\n"
+       red "xray 服务启动失败\n"
    fi
 elif [ ${check_singbox} -eq 0 ]; then
     yellow "sing-box 正在运行\n"
@@ -167,16 +167,16 @@ fi
 # 停止 sing-box
 stop_singbox() {
 if [ ${check_singbox} -eq 0 ]; then
-   yellow "正在停止 ${server_name} 服务\n"
+   yellow "正在停止 xray 服务\n"
     if [ -f /etc/alpine-release ]; then
         rc-service sing-box stop
     else
-        systemctl stop "${server_name}"
+        systemctl stop "xray"
     fi
    if [ $? -eq 0 ]; then
-       green "${server_name} 服务已成功停止\n"
+       green "xray 服务已成功停止\n"
    else
-       red "${server_name} 服务停止失败\n"
+       red "xray 服务停止失败\n"
    fi
 
 elif [ ${check_singbox} -eq 1 ]; then
@@ -193,17 +193,17 @@ fi
 # 重启 sing-box
 restart_singbox() {
 if [ ${check_singbox} -eq 0 ]; then
-   yellow "正在重启 ${server_name} 服务\n"
+   yellow "正在重启 xray 服务\n"
     if [ -f /etc/alpine-release ]; then
-        rc-service ${server_name} restart
+        rc-service xray restart
     else
         systemctl daemon-reload
-        systemctl restart "${server_name}"
+        systemctl restart "xray"
     fi
     if [ $? -eq 0 ]; then
-        green "${server_name} 服务已成功重启\n"
+        green "xray 服务已成功重启\n"
     else
-        red "${server_name} 服务重启失败\n"
+        red "xray 服务重启失败\n"
     fi
 elif [ ${check_singbox} -eq 1 ]; then
     yellow "sing-box 未运行\n"
@@ -385,7 +385,7 @@ while true; do
                     new_sni="$new_sni"
                 fi
                 jq --arg new_sni "$new_sni" '
-                (.inbounds[] | select(.type == "vless") | .tls.server_name) = $new_sni |
+                (.inbounds[] | select(.type == "vless") | .tls.xray) = $new_sni |
                 (.inbounds[] | select(.type == "vless") | .tls.reality.handshake.server) = $new_sni
                 ' "$config_dir" > "$config_file.tmp" && mv "$config_file.tmp" "$config_dir"
                 restart_singbox
