@@ -25,7 +25,7 @@ client_dir="${work_dir}/url.txt"
 export vless_port=${PORT:-$(shuf -i 1000-65000 -n 1)}
 
 # 检查是否为root下运行
-[[ $EUID -ne 0 ]] && red "请在root用户下运行脚本" && exit 1
+[[ $EUID -ne 0 ]] && red "错误：请在root用户下运行脚本！" && exit 1
 
 # 获取CPU架构
 if [[ "$(uname)" != 'Linux' ]]; then
@@ -91,40 +91,33 @@ if [[ -f /.dockerenv ]] || grep -q 'docker\|lxc' /proc/1/cgroup && [[ "$(type -P
 elif [[ -d /run/systemd/system ]] || grep -q systemd <(ls -l /sbin/init); then
   true
 else
-  red "错误：该Linux系统不支持使用 systemd服务!" && exit 1
+  red "错误：该Linux系统不支持使用 systemd服务！" && exit 1
 fi
 
 # 根据Linux系统类型配置包管理变量
 if [[ "$(type -P apt)" ]]; then
   PACKAGE_MANAGEMENT_INSTALL='apt -y --no-install-recommends install'
-  PACKAGE_MANAGEMENT_REMOVE='apt purge'
   package_provide_tput='ncurses-bin'
 elif [[ "$(type -P apk)" ]]; then
   PACKAGE_MANAGEMENT_INSTALL='apk add'
-  PACKAGE_MANAGEMENT_REMOVE='apk del'
   package_provide_tput='ncurses'
 elif [[ "$(type -P dnf)" ]]; then
   PACKAGE_MANAGEMENT_INSTALL='dnf -y install'
-  PACKAGE_MANAGEMENT_REMOVE='dnf remove'
   package_provide_tput='ncurses'
 elif [[ "$(type -P yum)" ]]; then
   PACKAGE_MANAGEMENT_INSTALL='yum -y install'
-  PACKAGE_MANAGEMENT_REMOVE='yum remove'
   package_provide_tput='ncurses'
 elif [[ "$(type -P zypper)" ]]; then
   PACKAGE_MANAGEMENT_INSTALL='zypper install -y --no-recommends'
-  PACKAGE_MANAGEMENT_REMOVE='zypper remove'
   package_provide_tput='ncurses-utils'
 elif [[ "$(type -P pacman)" ]]; then
   PACKAGE_MANAGEMENT_INSTALL='pacman -Syy --noconfirm'
-  PACKAGE_MANAGEMENT_REMOVE='pacman -Rsn'
   package_provide_tput='ncurses'
 elif [[ "$(type -P emerge)" ]]; then
   PACKAGE_MANAGEMENT_INSTALL='emerge -qv'
-  PACKAGE_MANAGEMENT_REMOVE='emerge -Cv'
   package_provide_tput='ncurses'
 else
-  echo "error: The script does not support the package manager in this operating system." && exit 1
+  red "错误：脚本不支持此操作系统中的软件包管理器！" && exit 1
 fi
 
 
