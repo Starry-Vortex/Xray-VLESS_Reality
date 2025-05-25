@@ -94,7 +94,7 @@ else
   red "错误：该Linux系统不支持使用 systemd服务!" && exit 1
 fi
 
-# 获取Linux系统类型
+# 根据Linux系统类型配置包管理变量
 if [[ "$(type -P apt)" ]]; then
   PACKAGE_MANAGEMENT_INSTALL='apt -y --no-install-recommends install'
   PACKAGE_MANAGEMENT_REMOVE='apt purge'
@@ -103,55 +103,29 @@ elif [[ "$(type -P apk)" ]]; then
   PACKAGE_MANAGEMENT_INSTALL='apk add'
   PACKAGE_MANAGEMENT_REMOVE='apk del'
   package_provide_tput='ncurses'
-  
-  elif [[ "$(type -P dnf)" ]]; then
-    PACKAGE_MANAGEMENT_INSTALL='dnf -y install'
-    PACKAGE_MANAGEMENT_REMOVE='dnf remove'
-    package_provide_tput='ncurses'
-  elif [[ "$(type -P yum)" ]]; then
-    PACKAGE_MANAGEMENT_INSTALL='yum -y install'
-    PACKAGE_MANAGEMENT_REMOVE='yum remove'
-    package_provide_tput='ncurses'
-  elif [[ "$(type -P zypper)" ]]; then
-    PACKAGE_MANAGEMENT_INSTALL='zypper install -y --no-recommends'
-    PACKAGE_MANAGEMENT_REMOVE='zypper remove'
-    package_provide_tput='ncurses-utils'
-  elif [[ "$(type -P pacman)" ]]; then
-    PACKAGE_MANAGEMENT_INSTALL='pacman -Syy --noconfirm'
-    PACKAGE_MANAGEMENT_REMOVE='pacman -Rsn'
-    package_provide_tput='ncurses'
-  elif [[ "$(type -P emerge)" ]]; then
-    PACKAGE_MANAGEMENT_INSTALL='emerge -qv'
-    PACKAGE_MANAGEMENT_REMOVE='emerge -Cv'
-    package_provide_tput='ncurses'
-  else
-    echo "error: The script does not support the package manager in this operating system."
-    return 1
-  fi
-  
- 
-
-    echo -e "\n检测当前系统中...\n"
-    if [[ -f /etc/redhat-release ]]; then
-        OS_RELEASE="centos"
-    elif cat /etc/issue | grep -Eqi "debian"; then
-        OS_RELEASE="debian"
-    elif cat /etc/issue | grep -Eqi "Alpine"; then
-        OS_RELEASE="alpine"
-    elif cat /etc/issue | grep -Eqi "ubuntu"; then
-        OS_RELEASE="ubuntu"
-    elif cat /etc/issue | grep -Eqi "centos|red hat|redhat"; then
-        OS_RELEASE="centos"
-    elif cat /proc/version | grep -Eqi "debian"; then
-        OS_RELEASE="debian"
-    elif cat /proc/version | grep -Eqi "ubuntu"; then
-        OS_RELEASE="ubuntu"
-    elif cat /proc/version | grep -Eqi "centos|red hat|redhat"; then
-        OS_RELEASE="centos"
-    else
-        echo -e "\n系统检测错误,请联系脚本作者!" && exit 1
-    fi
-    echo -e "\n系统检测完毕,当前系统为:${OS_RELEASE}\n"
+elif [[ "$(type -P dnf)" ]]; then
+  PACKAGE_MANAGEMENT_INSTALL='dnf -y install'
+  PACKAGE_MANAGEMENT_REMOVE='dnf remove'
+  package_provide_tput='ncurses'
+elif [[ "$(type -P yum)" ]]; then
+  PACKAGE_MANAGEMENT_INSTALL='yum -y install'
+  PACKAGE_MANAGEMENT_REMOVE='yum remove'
+  package_provide_tput='ncurses'
+elif [[ "$(type -P zypper)" ]]; then
+  PACKAGE_MANAGEMENT_INSTALL='zypper install -y --no-recommends'
+  PACKAGE_MANAGEMENT_REMOVE='zypper remove'
+  package_provide_tput='ncurses-utils'
+elif [[ "$(type -P pacman)" ]]; then
+  PACKAGE_MANAGEMENT_INSTALL='pacman -Syy --noconfirm'
+  PACKAGE_MANAGEMENT_REMOVE='pacman -Rsn'
+  package_provide_tput='ncurses'
+elif [[ "$(type -P emerge)" ]]; then
+  PACKAGE_MANAGEMENT_INSTALL='emerge -qv'
+  PACKAGE_MANAGEMENT_REMOVE='emerge -Cv'
+  package_provide_tput='ncurses'
+else
+  echo "error: The script does not support the package manager in this operating system." && exit 1
+fi
 
 
 
