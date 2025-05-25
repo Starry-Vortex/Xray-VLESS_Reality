@@ -81,24 +81,29 @@ case "$(uname -m)" in
   red "错误：不支持此架构！" && exit 1
   ;;
 esac
+
+# 检查 systemd 支持
 if [[ ! -f '/etc/os-release' ]]; then
   red "错误：不要使用过时的Linux发行版！" && exit 1
 fi
+if [[ -f /.dockerenv ]] || grep -q 'docker\|lxc' /proc/1/cgroup && [[ "$(type -P systemctl)" ]]; then
+  true
+elif [[ -d /run/systemd/system ]] || grep -q systemd <(ls -l /sbin/init); then
+  true
+else
+  red "错误：该Linux系统不支持使用 systemd服务!" && exit 1
+fi
 
-# Do not combine this judgment condition with the following judgment condition.
-## Be aware of Linux distribution like Gentoo, which kernel supports switch between Systemd and OpenRC.
-  if [[ -f /.dockerenv ]] || grep -q 'docker\|lxc' /proc/1/cgroup && [[ "$(type -P systemctl)" ]]; then
-    true
-  elif [[ -d /run/systemd/system ]] || grep -q systemd <(ls -l /sbin/init); then
-    true
-  else
-    echo "error: Only Linux distributions using systemd are supported."
-    return 1
-  fi
-  if [[ "$(type -P apt)" ]]; then
-    PACKAGE_MANAGEMENT_INSTALL='apt -y --no-install-recommends install'
-    PACKAGE_MANAGEMENT_REMOVE='apt purge'
-    package_provide_tput='ncurses-bin'
+# 获取Linux系统类型
+if [[ "$(type -P apt)" ]]; then
+  PACKAGE_MANAGEMENT_INSTALL='apt -y --no-install-recommends install'
+  PACKAGE_MANAGEMENT_REMOVE='apt purge'
+  package_provide_tput='ncurses-bin'
+elif [[ "$(type -P apk)" ]]; then
+  PACKAGE_MANAGEMENT_INSTALL='apk add'
+  PACKAGE_MANAGEMENT_REMOVE='apk del'
+  package_provide_tput='ncurses'
+  
   elif [[ "$(type -P dnf)" ]]; then
     PACKAGE_MANAGEMENT_INSTALL='dnf -y install'
     PACKAGE_MANAGEMENT_REMOVE='dnf remove'
