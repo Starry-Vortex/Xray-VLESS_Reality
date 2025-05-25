@@ -24,24 +24,132 @@ config_dir="${work_dir}/config.json"
 client_dir="${work_dir}/url.txt"
 export vless_port=${PORT:-$(shuf -i 1000-65000 -n 1)}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 检查是否为root下运行
 [[ $EUID -ne 0 ]] && red "请在root用户下运行脚本" && exit 1
+
+# 获取CPU架构
+if [[ "$(uname)" != 'Linux' ]]; then
+    red "错误：不支持此操作系统！" && exit 1
+fi
+case "$(uname -m)" in
+'i386' | 'i686')
+  MACHINE='32'
+  ;;
+'amd64' | 'x86_64')
+  MACHINE='64'
+  ;;
+'armv5tel')
+  MACHINE='arm32-v5'
+  ;;
+'armv6l')
+  MACHINE='arm32-v6'
+  grep Features /proc/cpuinfo | grep -qw 'vfp' || MACHINE='arm32-v5'
+  ;;
+'armv7' | 'armv7l')
+  MACHINE='arm32-v7a'
+  grep Features /proc/cpuinfo | grep -qw 'vfp' || MACHINE='arm32-v5'
+  ;;
+'armv8' | 'aarch64')
+  MACHINE='arm64-v8a'
+  ;;
+'mips')
+  MACHINE='mips32'
+  ;;
+'mipsle')
+  MACHINE='mips32le'
+  ;;
+'mips64')
+  MACHINE='mips64'
+  lscpu | grep -q "Little Endian" && MACHINE='mips64le'
+  ;;
+'mips64le')
+  MACHINE='mips64le'
+  ;;
+'ppc64')
+  MACHINE='ppc64'
+  ;;
+'ppc64le')
+  MACHINE='ppc64le'
+  ;;
+'riscv64')
+  MACHINE='riscv64'
+  ;;
+'s390x')
+  MACHINE='s390x'
+  ;;
+*)
+  red "错误：不支持此架构！" && exit 1
+  ;;
+esac
+if [[ ! -f '/etc/os-release' ]]; then
+  red "错误：不要使用过时的Linux发行版！" && exit 1
+fi
+
+# Do not combine this judgment condition with the following judgment condition.
+## Be aware of Linux distribution like Gentoo, which kernel supports switch between Systemd and OpenRC.
+  if [[ -f /.dockerenv ]] || grep -q 'docker\|lxc' /proc/1/cgroup && [[ "$(type -P systemctl)" ]]; then
+    true
+  elif [[ -d /run/systemd/system ]] || grep -q systemd <(ls -l /sbin/init); then
+    true
+  else
+    echo "error: Only Linux distributions using systemd are supported."
+    return 1
+  fi
+  if [[ "$(type -P apt)" ]]; then
+    PACKAGE_MANAGEMENT_INSTALL='apt -y --no-install-recommends install'
+    PACKAGE_MANAGEMENT_REMOVE='apt purge'
+    package_provide_tput='ncurses-bin'
+  elif [[ "$(type -P dnf)" ]]; then
+    PACKAGE_MANAGEMENT_INSTALL='dnf -y install'
+    PACKAGE_MANAGEMENT_REMOVE='dnf remove'
+    package_provide_tput='ncurses'
+  elif [[ "$(type -P yum)" ]]; then
+    PACKAGE_MANAGEMENT_INSTALL='yum -y install'
+    PACKAGE_MANAGEMENT_REMOVE='yum remove'
+    package_provide_tput='ncurses'
+  elif [[ "$(type -P zypper)" ]]; then
+    PACKAGE_MANAGEMENT_INSTALL='zypper install -y --no-recommends'
+    PACKAGE_MANAGEMENT_REMOVE='zypper remove'
+    package_provide_tput='ncurses-utils'
+  elif [[ "$(type -P pacman)" ]]; then
+    PACKAGE_MANAGEMENT_INSTALL='pacman -Syy --noconfirm'
+    PACKAGE_MANAGEMENT_REMOVE='pacman -Rsn'
+    package_provide_tput='ncurses'
+  elif [[ "$(type -P emerge)" ]]; then
+    PACKAGE_MANAGEMENT_INSTALL='emerge -qv'
+    PACKAGE_MANAGEMENT_REMOVE='emerge -Cv'
+    package_provide_tput='ncurses'
+  else
+    echo "error: The script does not support the package manager in this operating system."
+    return 1
+  fi
+  
+ 
+
+    echo -e "\n检测当前系统中...\n"
+    if [[ -f /etc/redhat-release ]]; then
+        OS_RELEASE="centos"
+    elif cat /etc/issue | grep -Eqi "debian"; then
+        OS_RELEASE="debian"
+    elif cat /etc/issue | grep -Eqi "Alpine"; then
+        OS_RELEASE="alpine"
+    elif cat /etc/issue | grep -Eqi "ubuntu"; then
+        OS_RELEASE="ubuntu"
+    elif cat /etc/issue | grep -Eqi "centos|red hat|redhat"; then
+        OS_RELEASE="centos"
+    elif cat /proc/version | grep -Eqi "debian"; then
+        OS_RELEASE="debian"
+    elif cat /proc/version | grep -Eqi "ubuntu"; then
+        OS_RELEASE="ubuntu"
+    elif cat /proc/version | grep -Eqi "centos|red hat|redhat"; then
+        OS_RELEASE="centos"
+    else
+        echo -e "\n系统检测错误,请联系脚本作者!" && exit 1
+    fi
+    echo -e "\n系统检测完毕,当前系统为:${OS_RELEASE}\n"
+
+
+
 
 # 首次安装脚本，显示欢迎界面艺术字
 word_artistic() {
@@ -107,6 +215,10 @@ echo "https://github.com/Starry-Vortex/Xray-VLESS_Reality/tree/patch-1"
 yellow "If the script executes incorrectly, go to:"
 echo ""
 }
+
+
+
+
 
 # 检查 Xray 是否已安装
 check_xray() {
