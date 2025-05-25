@@ -96,18 +96,25 @@ fi
 
 # 根据Linux系统类型配置包管理变量
 if [[ "$(type -P apt)" ]]; then
+  # Debian / Ubuntu / Kali / Linux Mint
   PACKAGE_INSTALL='apt -y --no-install-recommends install'
 elif [[ "$(type -P apk)" ]]; then
+  # Alpine Linux
   PACKAGE_INSTALL='apk add'
 elif [[ "$(type -P dnf)" ]]; then
+  # Fedora/RHEL 8+/CentOS Stream 8+
   PACKAGE_INSTALL='dnf -y install'
 elif [[ "$(type -P yum)" ]]; then
+  # RHEL 6,7/CentOS 6,7/Oracle Linux/Scientific Linux
   PACKAGE_INSTALL='yum -y install'
 elif [[ "$(type -P zypper)" ]]; then
+  # openSUSE/SUSE Linux Enterprise Server(SLES)
   PACKAGE_INSTALL='zypper install -y --no-recommends'
 elif [[ "$(type -P pacman)" ]]; then
+  # Arch Linux/Manjaro/EndeavourOS
   PACKAGE_INSTALL='pacman -Syy --noconfirm'
 elif [[ "$(type -P emerge)" ]]; then
+  # Gentoo Linux/Sabayon
   PACKAGE_INSTALL='emerge -qv'
 else
   red "错误：脚本不支持此操作系统中的软件包管理器！" && exit 1
