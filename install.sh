@@ -96,26 +96,19 @@ fi
 
 # 根据Linux系统类型配置包管理变量
 if [[ "$(type -P apt)" ]]; then
-  PACKAGE_MANAGEMENT_INSTALL='apt -y --no-install-recommends install'
-  package_provide_tput='ncurses-bin'
+  PACKAGE_INSTALL='apt -y --no-install-recommends install'
 elif [[ "$(type -P apk)" ]]; then
-  PACKAGE_MANAGEMENT_INSTALL='apk add'
-  package_provide_tput='ncurses'
+  PACKAGE_INSTALL='apk add'
 elif [[ "$(type -P dnf)" ]]; then
-  PACKAGE_MANAGEMENT_INSTALL='dnf -y install'
-  package_provide_tput='ncurses'
+  PACKAGE_INSTALL='dnf -y install'
 elif [[ "$(type -P yum)" ]]; then
-  PACKAGE_MANAGEMENT_INSTALL='yum -y install'
-  package_provide_tput='ncurses'
+  PACKAGE_INSTALL='yum -y install'
 elif [[ "$(type -P zypper)" ]]; then
-  PACKAGE_MANAGEMENT_INSTALL='zypper install -y --no-recommends'
-  package_provide_tput='ncurses-utils'
+  PACKAGE_INSTALL='zypper install -y --no-recommends'
 elif [[ "$(type -P pacman)" ]]; then
-  PACKAGE_MANAGEMENT_INSTALL='pacman -Syy --noconfirm'
-  package_provide_tput='ncurses'
+  PACKAGE_INSTALL='pacman -Syy --noconfirm'
 elif [[ "$(type -P emerge)" ]]; then
-  PACKAGE_MANAGEMENT_INSTALL='emerge -qv'
-  package_provide_tput='ncurses'
+  PACKAGE_INSTALL='emerge -qv'
 else
   red "错误：脚本不支持此操作系统中的软件包管理器！" && exit 1
 fi
