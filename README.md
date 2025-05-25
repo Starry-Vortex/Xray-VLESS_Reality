@@ -33,11 +33,11 @@ Trojan特征也很明显，容易被识别，暂时推荐使用Reality自建翻�
 ## 1.根据系统类型更新软件包
 ### Debian
 ````````
-apt update -qq && apt upgrade -y -qq && apt install -y curl
+apt update -qq && apt upgrade -y -qq && apt install -y curl unzip
 ````````
 ### Alpine
 ````````
-apk update --quiet && apk upgrade --quiet && apk add curl
+apk update --quiet && apk upgrade --quiet && apk add curl unzip
 ````````
 ## 2.一键安装脚本
 ````````
