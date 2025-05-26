@@ -120,7 +120,16 @@ else
   red "错误：脚本不支持此操作系统中的软件包管理器！" && exit 1
 fi
 
+# 获取当前Linux系统的发行版名称
+op=$(awk -F= '/PRETTY_NAME/ {gsub(/"/, "", $2); print $2}' /etc/os-release 2>/dev/null || cat /etc/redhat-release 2>/dev/null || awk -F= '/DISTRIB_DESCRIPTION/ {gsub(/"/, "", $2); print $2}' /etc/lsb-release 2>/dev/null || echo "Debian $(cat /etc/debian_version 2>/dev/null)" || echo "Unknown Linux distribution")
+if [[ -z "$op" ]]; then
+    op="Unknown Linux distribution"
+fi
 
+# 获取当前Linux系统的内核版本
+kernel_version=$(uname -r | cut -d "-" -f1)
+
+# 获取处理器类型
 
 
 # 首次安装脚本，显示欢迎界面艺术字
@@ -180,6 +189,8 @@ else
 <=========================================================================================================================>
 EOF
 fi
+echo "Detected OS: $op"
+
 yellow "The files installed by the script conform to the Filesystem Hierarchy Standard:"
 echo "https://wiki.linuxfoundation.org/lsb/fhs"
 yellow "The URL of the script project is:"
