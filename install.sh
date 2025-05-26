@@ -10,6 +10,7 @@ green="\e[1;32m"
 yellow="\e[1;33m"
 purple="\e[1;35m"
 skybule="\e[1;36m"
+plain="\033[0m"
 red() { echo -e "\e[1;91m$1\033[0m"; }
 green() { echo -e "\e[1;32m$1\033[0m"; }
 yellow() { echo -e "\e[1;33m$1\033[0m"; }
@@ -31,26 +32,33 @@ export vless_port=${PORT:-$(shuf -i 1000-65000 -n 1)}
 if [[ "$(uname)" != 'Linux' ]]; then
     red "错误：不支持此操作系统！" && exit 1
 fi
+cpu=Unknown
 case "$(uname -m)" in
 'i386' | 'i686')
   MACHINE='32'
+  cpu=amd32
   ;;
 'amd64' | 'x86_64')
   MACHINE='64'
+  cpu=amd64
   ;;
 'armv5tel')
   MACHINE='arm32-v5'
+  cpu=arm32-v5
   ;;
 'armv6l')
   MACHINE='arm32-v6'
+  cpu=arm32-v6
   grep Features /proc/cpuinfo | grep -qw 'vfp' || MACHINE='arm32-v5'
   ;;
 'armv7' | 'armv7l')
   MACHINE='arm32-v7a'
+  cpu=arm32-v7a
   grep Features /proc/cpuinfo | grep -qw 'vfp' || MACHINE='arm32-v5'
   ;;
 'armv8' | 'aarch64')
   MACHINE='arm64-v8a'
+  cpu=arm64
   ;;
 'mips')
   MACHINE='mips32'
@@ -101,6 +109,7 @@ if [[ "$(type -P apt)" ]]; then
 elif [[ "$(type -P apk)" ]]; then
   # Alpine Linux
   PACKAGE_INSTALL='apk add'
+  apk add virt-what
 elif [[ "$(type -P dnf)" ]]; then
   # Fedora/RHEL 8+/CentOS Stream 8+
   PACKAGE_INSTALL='dnf -y install'
@@ -120,16 +129,32 @@ else
   red "错误：脚本不支持此操作系统中的软件包管理器！" && exit 1
 fi
 
-# 获取当前Linux系统的发行版名称
+# 获取当前Linux系统的 发行版名称 和 内核版本
 op=$(awk -F= '/PRETTY_NAME/ {gsub(/"/, "", $2); print $2}' /etc/os-release 2>/dev/null || cat /etc/redhat-release 2>/dev/null || awk -F= '/DISTRIB_DESCRIPTION/ {gsub(/"/, "", $2); print $2}' /etc/lsb-release 2>/dev/null || echo "Debian $(cat /etc/debian_version 2>/dev/null)" || echo "Unknown Linux distribution")
-if [[ -z "$op" ]]; then
-    op="Unknown Linux distribution"
-fi
-
-# 获取当前Linux系统的内核版本
+op=${op:-"Unknown Linux"}
 kernel_version=$(uname -r | cut -d "-" -f1)
 
-# 获取处理器类型
+# 检测虚拟化类型
+[[ -z $(systemd-detect-virt 2>/dev/null) ]] && vi=$(virt-what 2>/dev/null| head -n 1) || vi=$(systemd-detect-virt 2>/dev/null)
+vi=${vi:-"None"}
+
+# 获取本机ipv4
+
+
+
+
+# 获取本机ipv6
+
+
+
+
+
+
+
+
+
+
+
 
 
 # 首次安装脚本，显示欢迎界面艺术字
@@ -189,8 +214,6 @@ else
 <=========================================================================================================================>
 EOF
 fi
-echo "Detected OS: $op"
-
 yellow "The files installed by the script conform to the Filesystem Hierarchy Standard:"
 echo "https://wiki.linuxfoundation.org/lsb/fhs"
 yellow "The URL of the script project is:"
@@ -425,6 +448,10 @@ while true; do
    clear
    echo ""
    clear
+   echo "VPS信息如下："
+   echo -e "系统:$skyblue$op$plain  \c";echo -e "内核:$skyblue$kernel_version$plain  \c";echo -e "处理器:$skyblue$cpu$plain  \c";echo -e "虚拟化:$skyblue$vi$plain  \c";echo -e "BBR算法:$skyblue$bbr$plain"
+   echo -e "本地IPV4地址：$skyblue$vps_ipv4$w4$plain   本地IPV6地址：$skyblue$vps_ipv6$w6$plain"
+   echo "------------------------------------------------------------------------------------"
    purple "============Reality 管理脚本============"
    purple " Xray 状态: ${check_xray_status}
    purple "Nginx 状态: ${check_nginx_status}\n"
